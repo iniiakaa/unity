@@ -14,44 +14,51 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
-        
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        
-       
+
+        rb.gravityScale = 0f;
+
+        Debug.Log("PlayerMovement: Inisialisasi selesai. Gravity Scale diset ke 0.");
     }
 
     void Update()
     {
- 
+        // Mendapatkan input
         movement.x = Input.GetAxisRaw("Horizontal");
         movement.y = Input.GetAxisRaw("Vertical");
 
-
-        if (movement.sqrMagnitude > 0)
-        {
-            animator.SetBool("isRunning", true);
-        }
-        else
-        {
-            animator.SetBool("isRunning", false);
-        }
-
         
-        if (movement.x < 0)
+        if (movement != Vector2.zero)
         {
-            spriteRenderer.flipX = true; 
+            Debug.Log($"Input Terdeteksi - X: {movement.x}, Y: {movement.y}");
         }
-        else if (movement.x > 0)
+
+        bool isMoving = movement.sqrMagnitude > 0;
+        animator.SetBool("isRunning", isMoving);
+
+      
+        if (movement.x < 0 && !spriteRenderer.flipX)
         {
-            spriteRenderer.flipX = false; 
+            spriteRenderer.flipX = true;
+            Debug.Log("Player menghadap ke Kiri");
+        }
+        else if (movement.x > 0 && spriteRenderer.flipX)
+        {
+            spriteRenderer.flipX = false;
+            Debug.Log("Player menghadap ke Kanan");
         }
     }
 
     void FixedUpdate()
     {
+       
+        Vector2 targetPosition = rb.position + movement.normalized * moveSpeed * Time.fixedDeltaTime;
+
         
-        rb.linearVelocity = movement.normalized * moveSpeed;
+        rb.MovePosition(targetPosition);
+
+        
     }
 }
