@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(HealthBarBehavior))]
 public class SimpleSmartEnemy : MonoBehaviour
 {
     [Header("Settings")]
@@ -17,6 +18,8 @@ public class SimpleSmartEnemy : MonoBehaviour
     private Vector2 targetPosition;
     private bool isChasing;
 
+    private HealthBarBehavior healthBehavior;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -26,8 +29,17 @@ public class SimpleSmartEnemy : MonoBehaviour
         startPosition = transform.position;
         SetNewTarget();
 
-        
+       
+        rb.bodyType = RigidbodyType2D.Kinematic;
         rb.gravityScale = 0;
+
+        
+        healthBehavior = GetComponent<HealthBarBehavior>();
+        if (healthBehavior != null)
+        {
+            
+            healthBehavior.onDie.AddListener(OnEnemyDeath);
+        }
     }
 
     void Update()
@@ -57,6 +69,11 @@ public class SimpleSmartEnemy : MonoBehaviour
     void Move()
     {
         
+        if (isChasing && Vector2.Distance(transform.position, targetPosition) < 0.6f)
+        {
+            return;
+        }
+        
         transform.position = Vector2.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
 
         
@@ -80,9 +97,16 @@ public class SimpleSmartEnemy : MonoBehaviour
         
         if (animator != null) animator.SetBool("isRunning", true);
 
-        
-        if (targetPosition.x > transform.position.x) spriteRenderer.flipX = false;
-        else if (targetPosition.x < transform.position.x) spriteRenderer.flipX = true;
+       
+        float distanceX = targetPosition.x - transform.position.x;
+        if (distanceX > 0.1f) spriteRenderer.flipX = false;
+        else if (distanceX < -0.1f) spriteRenderer.flipX = true;
+    }
+
+    void OnEnemyDeath()
+    {
+    
+        Destroy(gameObject);
     }
 
     
